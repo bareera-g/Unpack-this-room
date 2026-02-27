@@ -60,13 +60,15 @@ public struct RoomView: View {
                     canvasRect: canvasRect,
                     softening: viewModel.idleSofteningProgress
                 )
-                ForEach(viewModel.objects.filter { $0.isPlaced }) { object in
-                    RoomObjectDraggableView(
-                        object: object,
-                        room: room,
-                        canvasRect: canvasRect,
-                        viewModel: viewModel
-                    )
+                ForEach($viewModel.objects, id: \.id) { $object in
+                    if object.isPlaced {
+                        RoomObjectDraggableView(
+                            object: $object,
+                            room: room,
+                            canvasRect: canvasRect,
+                            viewModel: viewModel
+                        )
+                    }
                 }
             }
 
@@ -183,16 +185,15 @@ private struct RoomShellView: View {
 // MARK: - Draggable objects
 
 private struct RoomObjectDraggableView: View {
-    let object: RoomObject
+    @Binding var object: RoomObject
     let room: RoomDefinition
     let canvasRect: CGRect
     @ObservedObject var viewModel: AppViewModel
 
     @GestureState private var isDragging: Bool = false
-    @State private var dragOffset: CGSize = .zero
 
     var body: some View {
-        let basePoint = point(for: object.position)
+        let point = toCGPoint(object.position, in: canvasRect)
 
         RoomObjectView(
             object: object,
@@ -201,26 +202,20 @@ private struct RoomObjectDraggableView: View {
             lightDirection: room.lightDirection,
             isBeingDragged: isDragging
         )
-        .position(
-            x: basePoint.x + dragOffset.width,
-            y: basePoint.y + dragOffset.height
-        )
+        .position(point)
         .gesture(
             DragGesture()
                 .updating($isDragging) { _, state, _ in
                     state = true
                 }
                 .onChanged { value in
-                    dragOffset = value.translation
+                    let normalized = normalize(value.location, in: canvasRect)
+                    let clamped = viewModel.clampedPosition(normalized)
+                    object.position = clamped
                     viewModel.registerInteraction(for: object.id)
                 }
                 .onEnded { value in
-                    let finalPoint = CGPoint(
-                        x: basePoint.x + value.translation.width,
-                        y: basePoint.y + value.translation.height
-                    )
-
-                    let normalized = normalizedPosition(for: finalPoint)
+                    let normalized = normalize(value.location, in: canvasRect)
                     let clamped = viewModel.clampedPosition(normalized)
                     let imperfect = viewModel.isImperfectPlacement(for: object, at: clamped)
 
@@ -230,28 +225,30 @@ private struct RoomObjectDraggableView: View {
                             at: clamped,
                             isImperfect: imperfect
                         )
-                        dragOffset = .zero
                     }
                 }
         )
     }
 
-    private func point(for position: RoomObject.NormalizedPosition) -> CGPoint {
-        CGPoint(
-            x: canvasRect.minX + canvasRect.width * position.x,
-            y: canvasRect.minY + canvasRect.height * position.y
-        )
-    }
-
-    private func normalizedPosition(for point: CGPoint) -> RoomObject.NormalizedPosition {
-        guard canvasRect.width > 0, canvasRect.height > 0 else {
+    private func normalize(_ point: CGPoint, in rect: CGRect) -> RoomObject.NormalizedPosition {
+        guard rect.width > 0, rect.height > 0 else {
             return .tray
         }
 
-        let x = (point.x - canvasRect.minX) / canvasRect.width
-        let y = (point.y - canvasRect.minY) / canvasRect.height
+        let x = (point.x - rect.minX) / rect.width
+        let y = (point.y - rect.minY) / rect.height
 
-        return RoomObject.NormalizedPosition(x: x, y: y)
+        return RoomObject.NormalizedPosition(
+            x: min(max(x, 0), 1),
+            y: min(max(y, 0), 1)
+        )
+    }
+
+    private func toCGPoint(_ pos: RoomObject.NormalizedPosition, in rect: CGRect) -> CGPoint {
+        CGPoint(
+            x: rect.minX + pos.x * rect.width,
+            y: rect.minY + pos.y * rect.height
+        )
     }
 }
 

@@ -9,7 +9,7 @@ public final class AppViewModel: ObservableObject {
     // MARK: - Published state
 
     @Published public private(set) var session: SessionState
-    @Published public private(set) var objects: [RoomObject]
+    @Published public var objects: [RoomObject]
     @Published public private(set) var behaviorMetrics: BehaviorMetrics
 
     /// Horizontal widening factor for the current room.
