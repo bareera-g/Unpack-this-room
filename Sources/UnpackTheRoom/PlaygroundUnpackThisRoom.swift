@@ -167,10 +167,12 @@ final class PlaygroundGameState: ObservableObject {
     let idleTimer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
     init() {
-        self.rooms = PlaygroundRoomConfig.rooms
+        let configs = PlaygroundRoomConfig.rooms
+        self.rooms = configs
+
         var allItems: [PlaygroundRoomItemState] = []
 
-        for roomIndex in rooms.indices {
+        for roomIndex in configs.indices {
             for kind in PlaygroundItemKind.all {
                 allItems.append(
                     PlaygroundRoomItemState(
