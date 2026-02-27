@@ -53,20 +53,39 @@ public struct RoomView: View {
     private func canvas(for room: RoomDefinition, in size: CGSize) -> some View {
         let canvasRect = computeCanvasRect(for: room, in: size)
 
-        ZStack(alignment: .topLeading) {
-            RoomShellView(
-                room: room,
-                canvasRect: canvasRect,
-                softening: viewModel.idleSofteningProgress
-            )
-            ForEach(viewModel.objects) { object in
-                RoomObjectDraggableView(
-                    object: object,
+        ZStack(alignment: .bottom) {
+            ZStack(alignment: .topLeading) {
+                RoomShellView(
                     room: room,
                     canvasRect: canvasRect,
-                    viewModel: viewModel
+                    softening: viewModel.idleSofteningProgress
+                )
+                ForEach(viewModel.objects) { object in
+                    RoomObjectDraggableView(
+                        object: object,
+                        room: room,
+                        canvasRect: canvasRect,
+                        viewModel: viewModel
+                    )
+                }
+            }
+
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Boxes")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, 4)
+
+                RoomBoxesTrayView(
+                    objects: viewModel.objects,
+                    palette: room.basePalette,
+                    unpackAction: { object in
+                        viewModel.unpackFromTray(id: object.id)
+                    }
                 )
             }
+            .padding(.horizontal, 24)
+            .padding(.bottom, 16)
         }
         .animation(.spring(response: 0.7, dampingFraction: 0.9), value: viewModel.widthScale)
     }
@@ -235,4 +254,111 @@ private struct RoomObjectDraggableView: View {
         return RoomObject.NormalizedPosition(x: x, y: y)
     }
 }
+
+// MARK: - Boxes tray
+
+private struct RoomBoxesTrayView: View {
+    let objects: [RoomObject]
+    let palette: RoomColorPalette
+    let unpackAction: (RoomObject) -> Void
+
+    private var packedObjects: [RoomObject] {
+        objects.filter { !$0.isPlaced }
+    }
+
+    var body: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .fill(.ultraThinMaterial)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 24, style: .continuous)
+                        .stroke(Color.white.opacity(0.28), lineWidth: 1)
+                )
+                .shadow(
+                    color: Color.black.opacity(0.12),
+                    radius: 16,
+                    x: 0,
+                    y: 8
+                )
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 10) {
+                    ForEach(packedObjects) { object in
+                        Button {
+                            unpackAction(object)
+                        } label: {
+                            RoomBoxChipView(object: object, palette: palette)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 10)
+            }
+        }
+    }
+}
+
+private struct RoomBoxChipView: View {
+    let object: RoomObject
+    let palette: RoomColorPalette
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: symbolName(for: object.kind))
+                .font(.system(size: 16, weight: .semibold))
+                .symbolRenderingMode(.hierarchical)
+                .foregroundStyle(palette.accent)
+
+            Text(label(for: object.kind))
+                .font(.system(.footnote, design: .rounded))
+                .foregroundStyle(.primary)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .fill(Color.white.opacity(0.24))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .stroke(Color.white.opacity(0.40), lineWidth: 0.6)
+        )
+    }
+
+    private func symbolName(for kind: RoomObjectKind) -> String {
+        switch kind {
+        case .lamp:
+            return "lamp.table"
+        case .chair:
+            return "chair.lounge.fill"
+        case .plant:
+            return "leaf.fill"
+        case .photoFrame:
+            return "photo.on.rectangle.angled"
+        case .mug:
+            return "mug.fill"
+        case .laptopOrBook:
+            return "laptopcomputer"
+        }
+    }
+
+    private func label(for kind: RoomObjectKind) -> String {
+        switch kind {
+        case .lamp:
+            return "Lamp"
+        case .chair:
+            return "Chair"
+        case .plant:
+            return "Plant"
+        case .photoFrame:
+            return "Photo"
+        case .mug:
+            return "Mug"
+        case .laptopOrBook:
+            return "Desk"
+        }
+    }
+}
+
 

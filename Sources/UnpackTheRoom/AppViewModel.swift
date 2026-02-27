@@ -136,6 +136,31 @@ public final class AppViewModel: ObservableObject {
         return nearEdge || inDisfavoredRegion
     }
 
+    /// Unpacks an object from the tray into the room at a gentle spawn position.
+    public func unpackFromTray(id: UUID) {
+        guard let index = objects.firstIndex(where: { $0.id == id }) else { return }
+
+        var object = objects[index]
+        guard !object.isPlaced else { return }
+
+        let spawnPosition = clampedPosition(
+            RoomObject.NormalizedPosition(x: 0.5, y: 0.9)
+        )
+
+        object.position = spawnPosition
+        object.isPlaced = true
+        object.zIndex = (objects.map(\.zIndex).max() ?? 0) + 1
+
+        objects[index] = object
+
+        behaviorMetrics.placementAttempts += 1
+        behaviorMetrics.objectsTouched.insert(id)
+        behaviorMetrics.idleDuration = 0
+
+        applyAdaptation()
+        maybeAdvanceRoomIfNeeded()
+    }
+
     // MARK: - Session control
 
     public func restartExperience() {

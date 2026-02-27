@@ -55,10 +55,15 @@ public struct RoomObject: Identifiable, Equatable, Sendable {
 
 public extension Array where Element == RoomObject {
     static func defaultObjects() -> [RoomObject] {
-        RoomObjectKind.allCases.enumerated().map { index, kind in
-            RoomObject(
+        let trayXs: [CGFloat] = [0.16, 0.30, 0.44, 0.58, 0.72, 0.86]
+
+        return RoomObjectKind.allCases.enumerated().map { index, kind in
+            let x = trayXs[index % trayXs.count]
+            let position = RoomObject.NormalizedPosition(x: x, y: 1.05)
+
+            return RoomObject(
                 kind: kind,
-                position: .tray,
+                position: position,
                 isPlaced: false,
                 scale: 1.0,
                 rotationDegrees: 0,

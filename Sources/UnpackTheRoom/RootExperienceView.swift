@@ -28,3 +28,16 @@ public struct UnpackTheRoomRootView: View {
     }
 }
 
+// MARK: - Preview
+
+#Preview {
+    var demoObjects = [RoomObject].defaultObjects()
+    if !demoObjects.isEmpty {
+        demoObjects[0].position = RoomObject.NormalizedPosition(x: 0.5, y: 0.8)
+        demoObjects[0].isPlaced = true
+    }
+
+    let viewModel = AppViewModel(initialObjects: demoObjects)
+    return UnpackTheRoomRootView(viewModel: viewModel)
+}
+
