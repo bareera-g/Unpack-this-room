@@ -60,7 +60,7 @@ public struct RoomView: View {
                     canvasRect: canvasRect,
                     softening: viewModel.idleSofteningProgress
                 )
-                ForEach(viewModel.objects) { object in
+                ForEach(viewModel.objects.filter { $0.isPlaced }) { object in
                     RoomObjectDraggableView(
                         object: object,
                         room: room,
