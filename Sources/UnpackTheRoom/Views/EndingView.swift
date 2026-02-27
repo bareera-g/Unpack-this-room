@@ -34,7 +34,6 @@ public struct EndingView: View {
         .accessibilityAddTraits(.isButton)
     }
 
-    @ViewBuilder
     private func background(using palette: RoomColorPalette?) -> some View {
         let baseBackground: Color
         let accent: Color
@@ -47,7 +46,7 @@ public struct EndingView: View {
             accent = Color(hue: 0.1, saturation: 0.25, brightness: 0.85)
         }
 
-        LinearGradient(
+        return LinearGradient(
             colors: [
                 baseBackground,
                 accent.opacity(0.4),

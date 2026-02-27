@@ -26,23 +26,16 @@ public struct RoomObjectView: View {
     }
 
     public var body: some View {
-        let baseShape = shape
-
-        baseShape
-            .fill(palette.accent)
-            .overlay(
-                baseShape
-                    .stroke(palette.shadow.opacity(0.18), lineWidth: 1)
-            )
+        shape
             .scaleEffect(isBeingDragged ? 1.06 : object.scale)
-            .rotationEffect(.degrees(object.rotationDegrees))
+            .rotationEffect(Angle.degrees(object.rotationDegrees))
             .shadow(
                 color: palette.shadow.opacity(Double(0.4 * shadowStrength)),
                 radius: isBeingDragged ? 18 : 12,
                 x: shadowOffset.width,
                 y: shadowOffset.height
             )
-            .animation(.easeOut(duration: 0.25), value: isBeingDragged)
+            .animation(Animation.easeOut(duration: 0.25), value: isBeingDragged)
             .accessibilityLabel(Text(accessibilityLabel))
     }
 
@@ -82,6 +75,7 @@ public struct RoomObjectView: View {
                 RoundedRectangle(cornerRadius: 8, style: .continuous)
                     .frame(width: 34, height: 6)
             }
+            .foregroundStyle(palette.accent)
         case .chair:
             VStack(spacing: 3) {
                 RoundedRectangle(cornerRadius: 6, style: .continuous)
@@ -93,6 +87,7 @@ public struct RoomObjectView: View {
                         .frame(width: 6, height: 18)
                 }
             }
+            .foregroundStyle(palette.accent)
         case .plant:
             ZStack {
                 RoundedRectangle(cornerRadius: 8, style: .continuous)
@@ -105,6 +100,7 @@ public struct RoomObjectView: View {
                 }
                 .offset(y: -18)
             }
+            .foregroundStyle(palette.accent)
         case .photoFrame:
             RoundedRectangle(cornerRadius: 10, style: .continuous)
                 .frame(width: 46, height: 34)
@@ -121,6 +117,7 @@ public struct RoomObjectView: View {
                     .frame(width: 14, height: 18)
                     .offset(x: 18)
             }
+            .foregroundStyle(palette.accent)
         case .laptopOrBook:
             VStack(spacing: 0) {
                 RoundedRectangle(cornerRadius: 8, style: .continuous)
@@ -128,6 +125,7 @@ public struct RoomObjectView: View {
                 RoundedRectangle(cornerRadius: 6, style: .continuous)
                     .frame(width: 52, height: 26)
             }
+            .foregroundStyle(palette.accent)
         }
     }
 }

@@ -124,7 +124,6 @@ private struct RoomShellView: View {
             )
     }
 
-    @ViewBuilder
     private var lightGradient: some View {
         let accent = room.basePalette.accent
         let opacity = Double(0.10 * (1.0 - softening))
@@ -157,7 +156,7 @@ private struct RoomShellView: View {
             )
         }
 
-        gradient
+        return gradient
             .blendMode(.softLight)
     }
 }
